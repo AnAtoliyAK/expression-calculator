@@ -73,18 +73,47 @@ function transformDataStringToArray(expr) {
   return innerArray;
 }
 
+function simpleCalculate(dataArray) {
+  const multDevideResultArray = recMultDevideOper(dataArray);
+  return recSumSubstractOper(multDevideResultArray)[0];
+}
+
+function checkForPairedBrackets(arr) {
+  return [...arr].filter(e => e === '(').length === [...arr].filter(e => e === ')').length;
+}
+
+function calcWithBrackets(arr) {
+  if (!checkForPairedBrackets(arr)) {
+    throw new Error('ExpressionError: Brackets must be paired');
+  }
+
+  let newArr = [...arr];
+  
+  let openBracketIndex = newArr.findIndex(el => el === '(');
+  let closeBracketIndex = newArr.findIndex(el => el === ')');
+
+  const bracketExprArr = newArr.slice(openBracketIndex + 1, closeBracketIndex);
+  const bracketCalcResult = simpleCalculate(bracketExprArr);
+  const simplifiedExprArr = [...newArr];
+  simplifiedExprArr.splice(openBracketIndex, closeBracketIndex - openBracketIndex + 1, bracketCalcResult);
+
+  const result = simpleCalculate(simplifiedExprArr);
+  return result;
+}
+
 function expressionCalculator(expr) {
   const dataArray = transformDataStringToArray(expr);
-  const multDevideResultArray = recMultDevideOper(dataArray);
-  const sumSubstrResultArray = recSumSubstractOper(multDevideResultArray);
+  let result;
 
-  return sumSubstrResultArray[0];
+  if (dataArray.filter(el => el === '(' || el === ')').length > 0) {
+    result = calcWithBrackets(dataArray);
+  } else {
+    result = simpleCalculate(dataArray);
+  }
+
+  return result;
 }
 module.exports = {
   expressionCalculator
 }
-
-
-
-
 
