@@ -82,22 +82,34 @@ function checkForPairedBrackets(arr) {
   return [...arr].filter(e => e === '(').length === [...arr].filter(e => e === ')').length;
 }
 
-function calcWithBrackets(arr) {
-  if (!checkForPairedBrackets(arr)) {
-    throw new Error('ExpressionError: Brackets must be paired');
-  }
-
+function evaluateSingleBracketsValue(arr, openBracketIndex, closeBracketIndex) {
   let newArr = [...arr];
-  
-  let openBracketIndex = newArr.findIndex(el => el === '(');
-  let closeBracketIndex = newArr.findIndex(el => el === ')');
-
   const bracketExprArr = newArr.slice(openBracketIndex + 1, closeBracketIndex);
   const bracketCalcResult = simpleCalculate(bracketExprArr);
   const simplifiedExprArr = [...newArr];
   simplifiedExprArr.splice(openBracketIndex, closeBracketIndex - openBracketIndex + 1, bracketCalcResult);
 
-  const result = simpleCalculate(simplifiedExprArr);
+  return simplifiedExprArr;
+}
+
+function calcWithNestedBrackets(arr) {
+
+  if (!checkForPairedBrackets(arr)) {
+    throw new Error('ExpressionError: Brackets must be paired');
+  }
+
+  let loopResult = [...arr];
+
+  while (loopResult.findIndex(el => el === '(') !== -1) {
+    const openBrIndexesArr = loopResult
+      .map((el, index) => el === '(' ? index : null)
+      .filter(e => !!e || e == 0);
+    const closeBrIndex = loopResult.indexOf(')');
+    const openBrIndex = openBrIndexesArr.filter(el => el < closeBrIndex).pop();
+    loopResult = evaluateSingleBracketsValue(loopResult, openBrIndex, closeBrIndex);
+  }
+
+  const result = simpleCalculate(loopResult);
   return result;
 }
 
@@ -106,7 +118,7 @@ function expressionCalculator(expr) {
   let result;
 
   if (dataArray.filter(el => el === '(' || el === ')').length > 0) {
-    result = calcWithBrackets(dataArray);
+    result = calcWithNestedBrackets(dataArray);
   } else {
     result = simpleCalculate(dataArray);
   }
@@ -116,4 +128,3 @@ function expressionCalculator(expr) {
 module.exports = {
   expressionCalculator
 }
-
